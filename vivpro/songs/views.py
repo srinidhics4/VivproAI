@@ -19,6 +19,9 @@ class SongList(APIView):
     pagination_class = PageNumberPagination
 
     def get(self, request, format=None):
+        """
+        Gets all objects in the Song Model class
+        """
         songs = Song.objects.all()
 
         paginator = self.pagination_class()
@@ -27,6 +30,9 @@ class SongList(APIView):
         return paginator.get_paginated_response(serializer.data)
 
     def post(self, request, format=None):
+        """
+        Creates a new Song object and saves data in database table
+        """
         serializer = SongSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -40,6 +46,11 @@ class SongDetail(APIView):
     """
 
     def get_object(self, lookup_param, value):
+        """
+        Get a single Song instance filtered by id or title of Song
+
+        Returns Song instance
+        """
         try:
             if lookup_param == 'title':
                 return Song.objects.get(title=value)
@@ -51,11 +62,21 @@ class SongDetail(APIView):
             raise Http404
 
     def get(self, request, lookup_param, value, format=None):
+        """
+        Get a single Song instance filtered by id or title of Song
+
+        Returns Response with serialized data
+        """
         song = self.get_object(lookup_param=lookup_param, value=value)
         serializer = SongSerializer(song)
         return Response(serializer.data)
 
     def put(self, request, lookup_param, value, format=None):
+        """
+        Updates values of Song instance filtered by id or title
+
+        Returns Response with serialized data or error if any
+        """
         song = self.get_object(lookup_param, value)
         serializer = SongSerializer(song, data=request.data)
         if serializer.is_valid():
@@ -64,6 +85,11 @@ class SongDetail(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, lookup_param, value, format=None):
+        """
+        Deletes a Song instance from database
+
+        Returns Response with status message
+        """
         song = self.get_object(lookup_param, value)
         song.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
