@@ -19,6 +19,13 @@ class Song(models.Model):
     num_bars = models.IntegerField(null=True)
     num_sections = models.IntegerField(null=True)
     num_segments = models.IntegerField(null=True)
+    rating = models.IntegerField(null=True)
     
     class Meta:
         db_table = 'songs'
+
+    def get_title(self):
+        return 'Song title is ' + self.title
+
+    def __repr__(self):
+        return self.title + ' is added.'

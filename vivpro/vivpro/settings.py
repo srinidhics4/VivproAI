@@ -84,8 +84,11 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '5432',
         'OPTIONS': {
-            'options': '-c search_path=songs'
+            'options': '-c search_path=public,songs'
         },
+        'TEST': {
+                'NAME': 'test', # test database name
+            },
     }
 }
 

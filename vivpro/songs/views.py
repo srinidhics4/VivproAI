@@ -39,26 +39,31 @@ class SongDetail(APIView):
     Retrieve, update or delete a song instance.
     """
 
-    def get_object(self, pk):
+    def get_object(self, lookup_param, value):
         try:
-            return Song.objects.get(pk=pk)
+            if lookup_param == 'title':
+                return Song.objects.get(title=value)
+            elif lookup_param == 'id':
+                return Song.objects.get(id=value)
+            else:
+                raise Http404
         except Song.DoesNotExist:
             raise Http404
 
-    def get(self, request, title, format=None):
-        song = Song.objects.get(title=title)
+    def get(self, request, lookup_param, value, format=None):
+        song = self.get_object(lookup_param=lookup_param, value=value)
         serializer = SongSerializer(song)
         return Response(serializer.data)
 
-    def put(self, request, pk, format=None):
-        song = self.get_object(pk)
+    def put(self, request, lookup_param, value, format=None):
+        song = self.get_object(lookup_param, value)
         serializer = SongSerializer(song, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        snippet.delete()
+    def delete(self, request, lookup_param, value, format=None):
+        song = self.get_object(lookup_param, value)
+        song.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
