@@ -1,16 +1,64 @@
 from django.shortcuts import render
-from django.http import HttpResponse
-from rest_framework import viewsets, permissions
+from django.http import HttpResponse, Http404
+from rest_framework import viewsets, permissions, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.pagination import PageNumberPagination
 
 from .models import Song
 from .serializers import SongSerializer
 # Create your views here.
 
 def index(request):
-    queryset = Song.objects.get(id='5vYA1mW9g2Coh1HUFUSmlb')
-    return HttpResponse(f"Hello world, You're at the songs index {queryset}")
+    return HttpResponse(f"Hello world, You're at the songs index")
 
-class SongViewSet(viewsets.ModelViewSet):
-    queryset = Song.objects.all()
-    print(queryset)
-    serializer_class = SongSerializer
+class SongList(APIView):
+    """
+    List all songs, or create a new song.
+    """
+    pagination_class = PageNumberPagination
+
+    def get(self, request, format=None):
+        songs = Song.objects.all()
+
+        paginator = self.pagination_class()
+        results = paginator.paginate_queryset(songs, request, view=self)
+        serializer = SongSerializer(results, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+    def post(self, request, format=None):
+        serializer = SongSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class SongDetail(APIView):
+    """
+    Retrieve, update or delete a song instance.
+    """
+
+    def get_object(self, pk):
+        try:
+            return Song.objects.get(pk=pk)
+        except Song.DoesNotExist:
+            raise Http404
+
+    def get(self, request, title, format=None):
+        song = Song.objects.get(title=title)
+        serializer = SongSerializer(song)
+        return Response(serializer.data)
+
+    def put(self, request, pk, format=None):
+        song = self.get_object(pk)
+        serializer = SongSerializer(song, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, format=None):
+        snippet = self.get_object(pk)
+        snippet.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

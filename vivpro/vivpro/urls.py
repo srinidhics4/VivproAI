@@ -22,10 +22,11 @@ from songs import views
 
 
 router = routers.DefaultRouter()
-router.register(r'songs', views.SongViewSet)
+# router.register(r'songs', views.SongView.as_view())
+# router.register(r'songs/<title>', views.SongView.as_view())
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path('', include(router.urls)),
-    path("songs/", include("songs.urls")),
+    path('api/', include('songs.urls')),
+    # path('', include(router.urls)),
 ]
